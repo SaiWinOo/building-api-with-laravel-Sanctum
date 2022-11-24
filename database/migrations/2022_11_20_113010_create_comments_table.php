@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('comment');
             $table->foreignId('user_id');
-            $table->foreignId('post_id');
+            $table->foreignId('blog_id');
             $table->timestamps();
         });
     }

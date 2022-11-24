@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CommentResource;
 use App\Models\Blog;
 use App\Models\Comment;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class CommentApiController extends Controller
     public function index()
     {
         $comments = Comment::latest('id')->get();
-        return response()->json($comments);
+        return CommentResource::collection($comments);
     }
 
     /**
@@ -30,14 +31,14 @@ class CommentApiController extends Controller
     {
         $request->validate([
             'comment'=> 'required',
-            'post_id' => 'required',
+            'blog_id' => 'required',
         ]);
         Comment::create([
             'comment' => $request->comment,
-            'post_id' => $request->post_id,
+            'blog_id' => $request->blog_id,
             'user_id' => Auth::id(),
         ]);
-
+        return response()->json(['message' => 'commented successfully!']);
     }
 
     /**
@@ -68,7 +69,7 @@ class CommentApiController extends Controller
         if($request->comment){
                 $comment->comment = $request->comment;
         }
-        $blog->update();
+        $comment->update();
         return response()->json(['message' => 'Blog post is updated!']);
     }
 

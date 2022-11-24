@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\BlogsResource;
 use App\Models\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,10 +16,14 @@ class BlogApiController extends Controller
      */
     public function index()
     {
-        $blogs  = Blog::latest('id')->get();
-        return response()->json($blogs);
+        $blogs  = Blog::latest('id')->paginate(9)->withQueryString()->onEachSide(1);
+        return BlogsResource::collection($blogs);
     }
 
+    public function home(){
+        $blogs = Blog::latest('id')->take(3)->get();
+        return  BlogsResource::collection($blogs);
+    }
     /**
      * Store a newly created resource in storage.
      *
@@ -35,14 +40,18 @@ class BlogApiController extends Controller
         ]);
         $newName = uniqid().'_featured_image_'.$request->file('featured_image')->extension();
         $request->file('featured_image')->storeAs('public',$newName);
-        Blog::create([
+        $blog = Blog::create([
             'title' => $request->title,
             'description' => $request->description,
             'user_id' => Auth::id(),
             'category_id' => $request->category_id,
             'featured_image' => $newName,
         ]);
-        return response()->json(['message' => 'Blog post is created!']);
+        
+        return response()->json([
+            'message' => 'Blog post is created!',
+            'success' => true,
+        ]);
     }
 
     /**
@@ -57,7 +66,7 @@ class BlogApiController extends Controller
         if(is_null($blog)){
             return response()->json(['message' => 'Blog post is not found!']);
         }
-        return response()->json($blog);
+        return new BlogsResource($blog);
     }
 
     /**
@@ -88,12 +97,13 @@ class BlogApiController extends Controller
         if($request->category_id){
             $blog->category_id = $request->category_id;
         }
-        $blog->update();
         if($request->featured_image){
             $newName = uniqid().'_featured_image_.'.$request->file('featured_image')->extension();
             $request->file('featured_image')->storeAs('public',$newName);
             $blog->featured_image = $newName;
         }
+        $blog->update();
+
         return response()->json(['message' => 'Blog post is updated!']);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class CategoryApiController extends Controller
@@ -13,7 +14,8 @@ class CategoryApiController extends Controller
      */
     public function index()
     {
-        //
+        $categories = Category::latest('id')->get();
+        return response()->json($categories);
     }
 
     /**
